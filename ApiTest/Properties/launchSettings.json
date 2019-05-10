@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ApiTest": {
+      "commandName": "Project",
+      "commandLineArgs": "TextToSpeech"
+    }
+  }
+}

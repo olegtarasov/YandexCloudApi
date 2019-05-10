@@ -5,14 +5,17 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using YandexCloudApi.Logging;
 
 namespace YandexCloudApi
 {
     /// <summary>
-    /// Converts between different sound formats.
+    /// Converts between different audio formats.
     /// </summary>
-    public class SoundConverter
+    public class AudioConverter
     {
+        private static readonly ILog _log = LogProvider.For<AudioConverter>();
+
         /// <summary>
         /// Converts raw PCM data without WAV header to
         /// OPUS stream packed into Ogg container.
@@ -38,6 +41,8 @@ namespace YandexCloudApi
                                RedirectStandardError = true
                            };
 
+                _log.Debug($"{info.FileName} {info.Arguments}");
+
                 try
                 {
                     var errorBuilder = new StringBuilder();
@@ -49,18 +54,24 @@ namespace YandexCloudApi
 
                     if (process.ExitCode != 0)
                     {
-                        throw new ConverterException($"opusenc.exe exited with code {process.ExitCode}", errorBuilder.ToString());
+                        string err = errorBuilder.ToString();
+                        _log.Debug($"opusenc.exe exited with code {process.ExitCode}. stderr:\n{err}");
+                        throw new ConverterException($"opusenc.exe exited with code {process.ExitCode}", err);
                     }
 
                     var oggData = File.ReadAllBytes(oggFile);
                     if (oggData.Length == 0)
                     {
+                        string err = errorBuilder.ToString();
+                        _log.Debug($"opusenc.exe produced an empty file! stderr:\n{err}");
                         throw new ConverterException($"opusenc.exe produced an empty file!", errorBuilder.ToString());
                     }
 
+                    _log.Debug("Converted successfully.");
+
                     return oggData;
                 }
-                catch (ConverterException e)
+                catch (ConverterException)
                 {
                     throw;
                 }

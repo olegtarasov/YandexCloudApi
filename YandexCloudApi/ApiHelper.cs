@@ -2,23 +2,29 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using YandexCloudApi.Logging;
 
 namespace YandexCloudApi
 {
     public static class ApiHelper
     {
+        private static readonly ILog _log = LogProvider.GetLogger(typeof(ApiHelper));
+
         public static Task<byte[]> MakeByteRequest(
             this HttpClient client,
             Func<HttpClient, Task<HttpResponseMessage>> requestFunc)
         {
-            return MakeRequest(client, requestFunc, response => response.Content.ReadAsByteArrayAsync());
+            return MakeRequest(
+                client, 
+                requestFunc, 
+                response => response.Content?.ReadAsByteArrayAsync());
         }
 
         public static Task<string> MakeStringRequest(
             this HttpClient client,
             Func<HttpClient, Task<HttpResponseMessage>> requestFunc)
         {
-            return MakeRequest(client, requestFunc, response => response.Content.ReadAsStringAsync());
+            return MakeRequest(client, requestFunc, response => response.Content?.ReadAsStringAsync());
         }
 
         public static async Task<T> MakeRequest<T>(
@@ -33,22 +39,36 @@ namespace YandexCloudApi
                 if (!response.IsSuccessStatusCode)
                 {
                     string content;
-                    try
+                    if (response.Content == null)
                     {
-                        content = await response.Content.ReadAsStringAsync();
+                        content = "<Content is empty>";
                     }
-                    catch
+                    else
                     {
-                        content = "<There was an exception reading response stream>";
+                        try
+                        {
+                            content = await response.Content.ReadAsStringAsync();
+                        }
+                        catch
+                        {
+                            content = "<There was an exception reading response stream>";
+                        }
                     }
+
+                    _log.Debug($"Request failed with code: {response.StatusCode}.\nFull request:\n{response.RequestMessage.ToString()}.\nFull response:\n{response.ToString()}\nContent:\n{content}");
 
                     throw new ApiException(response.StatusCode, content);
                 }
 
                 return await contentFunc(response);
             }
+            catch (ApiException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
+                _log.Debug(e, "Request failed with exception");
                 throw new ApiException(e);
             }
         }

@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using YandexCloudApi.Logging;
 
 namespace YandexCloudApi
 {
@@ -11,6 +13,7 @@ namespace YandexCloudApi
     /// </summary>
     public class FullAccountAuthorizer : IAuthorizer
     {
+        private static readonly ILog _log = LogProvider.For<FullAccountAuthorizer>();
         private static readonly TimeSpan _tokenTimeout = TimeSpan.FromHours(11.9);
 
         private readonly HttpClient _client; 
@@ -51,7 +54,8 @@ namespace YandexCloudApi
 
         private async Task<string> RefreshToken()
         {
-            return await _client.MakeStringRequest(
+            _log.Info("Refreshing IAM token for full account.");
+            string response = await _client.MakeStringRequest(
                        client => client.PostAsync(
                            "https://iam.api.cloud.yandex.net/iam/v1/tokens",
                            ApiHelper.AppJsonContent(
@@ -59,6 +63,16 @@ namespace YandexCloudApi
                            )
                        )
                    );
+
+            try
+            {
+                var jobj = JObject.Parse(response);
+                return jobj["iamToken"].ToString();
+            }
+            catch (Exception e)
+            {
+                throw new ApiException(e);
+            }
         }
     }
 }

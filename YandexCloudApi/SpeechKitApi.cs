@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using YandexCloudApi.Logging;
 
 namespace YandexCloudApi
 {
@@ -15,6 +18,8 @@ namespace YandexCloudApi
     /// </summary>
     public class SpeechKitApi
     {
+        private static readonly ILog _log = LogProvider.For<SpeechKitApi>();
+
         private static readonly HashSet<int> _sampleRates = new HashSet<int> {48000, 16000, 8000};
         private static readonly Dictionary<AudioFormat, string> _formatMap =
             new Dictionary<AudioFormat, string>
@@ -57,6 +62,7 @@ namespace YandexCloudApi
         /// <param name="filterProfanity">Filter out profanity.</param>
         /// <param name="sampleRate">Sample rate. Required when <see cref="format"/> is <see cref="AudioFormat.PCM"/>.</param>
         /// <returns>Recognized text.</returns>
+        /// <exception cref="ApiException">API exception occured.</exception>
         public async Task<string> RecognizeTextAsync(
             byte[] data, 
             AudioFormat format, 
@@ -84,18 +90,30 @@ namespace YandexCloudApi
                 url += $"&sampleRateHertz={sampleRate}";
             }
 
-            string result = await _client.MakeStringRequest(
+            _log.Debug($"Recognizing text: {url}");
+
+            var watch = new Stopwatch();
+            watch.Start();
+            string response = await _client.MakeStringRequest(
                                 client => client.PostAsync(url, new ByteArrayContent(data)));
+            watch.Stop();
+
+            string result = "";
 
             try
             {
-                var jobj = JObject.Parse(result);
-                return jobj["result"].ToString();
+                var jobj = JObject.Parse(response);
+                result = jobj["result"].ToString();
             }
             catch (Exception e)
             {
+                _log.Error(e, $"Failed to parse the response: {response}");
                 throw new ApiException(e);
             }
+
+            _log.Debug($"Recognized text: '{result}' in {watch.Elapsed.ToString()}");
+
+            return result;
         }
 
         /// <summary>
@@ -106,9 +124,10 @@ namespace YandexCloudApi
         /// <param name="language">Language.</param>
         /// <param name="voice">Voice.</param>
         /// <param name="emotion">Emotion.</param>
-        /// <param name="speed">Speed.</param>
+        /// <param name="speed">Speed [0.1 .. 3.0].</param>
         /// <param name="sampleRate">Audio sample rate. Required when <see cref="format"/> is <see cref="AudioFormat.PCM"/>.</param>
-        /// <returns></returns>
+        /// <returns>Synthesized audio data.</returns>
+        /// <exception cref="ApiException">API exception occured.</exception>
         public async Task<byte[]> SynthesizeSpeechAsync(
             string text,
             AudioFormat format,
@@ -129,22 +148,40 @@ namespace YandexCloudApi
                 throw new ArgumentException("Invalid sample rate!", nameof(sampleRate));
             }
 
-            var content = new FormUrlEncodedContent(
+            await RefreshToken();
+
+            var synthParams =
                 new Dictionary<string, string>
                 {
-                    { "text", text },
-                    { "lang", _languageMap[language] },
-                    { "folderId", _folderId },
-                    {"format", _formatMap[format] },
-                    {"sampleRateHertz", sampleRate.ToString() },
-                    {"voice", voice.ToString().ToLower() },
-                    {"emotion", emotion.ToString().ToLower() },
-                    {"speed", speed.ToString(NumberFormatInfo.InvariantInfo) }
-                });
+                    {"text", text},
+                    {"lang", _languageMap[language]},
+                    {"folderId", _folderId},
+                    {"format", _formatMap[format]},
+                    {"sampleRateHertz", sampleRate.ToString()},
+                    {"voice", voice.ToString().ToLower()},
+                    {"emotion", emotion.ToString().ToLower()},
+                    {"speed", speed.ToString(NumberFormatInfo.InvariantInfo)}
+                };
+            var content = new FormUrlEncodedContent(
+                synthParams);
+
+            _log.Debug($"Synthesizing with params: {JsonConvert.SerializeObject(synthParams, Formatting.None)}");
+
+            var watch = new Stopwatch();
+            watch.Start();
 
             var result = await _client.MakeByteRequest(
                 client => client.PostAsync("https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize",
                     content));
+
+            watch.Stop();
+
+            if (result.Length == 0)
+            {
+                throw new ApiException("Speech synthesiser returned 0 bytes!");
+            }
+
+            _log.Debug($"Synthesized audio in {watch.Elapsed.ToString()}");
 
             return result;
         }
