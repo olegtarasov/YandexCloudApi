@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Oleg Tarasov</Authors>
+    <Company>_</Company>
+    <Description>.NET Standard wrapper for Yandex Cloud REST API.</Description>
+    <PackageProjectUrl>https://github.com/olegtarasov/YandexCloudApi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/olegtarasov/YandexCloudApi</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>YandexCloudApi.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="opusenc.exe" />
+    <None Remove="YandexCloudApi.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="opusenc.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="1.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+</Project>

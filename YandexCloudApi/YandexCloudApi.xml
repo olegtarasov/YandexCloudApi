@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>YandexCloudApi</name>
+    </assembly>
+    <members>
+        <member name="T:YandexCloudApi.ApiException">
+            <summary>
+            REST API exception.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.ApiException.#ctor(System.Net.HttpStatusCode,System.String)">
+            <summary>
+            Ctor.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.ApiException.#ctor(System.Exception)">
+            <summary>
+            Ctor.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.ApiException.#ctor(System.String)">
+            <summary>
+            Ctor.
+            </summary>
+        </member>
+        <member name="P:YandexCloudApi.ApiException.StatusCode">
+            <summary>
+            HTTP status code.
+            </summary>
+        </member>
+        <member name="P:YandexCloudApi.ApiException.Content">
+            <summary>
+            Response content.
+            </summary>
+        </member>
+        <member name="T:YandexCloudApi.ConverterException">
+            <summary>
+            Sound converter exception.
+            </summary>
+        </member>
+        <member name="T:YandexCloudApi.FullAccountAuthorizer">
+            <summary>
+            An authorizer used to obtain IAM token for full
+            (not service) account.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.FullAccountAuthorizer.#ctor(System.String)">
+            <summary>
+            Ctor.
+            </summary>
+            <param name="oauthToken">Account OAuth token.</param>
+        </member>
+        <member name="M:YandexCloudApi.FullAccountAuthorizer.GetAuthTokenAsync">
+            <inheritdoc />
+        </member>
+        <member name="T:YandexCloudApi.IAuthorizer">
+            <summary>
+            An interface that describes a token provider.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.IAuthorizer.GetAuthTokenAsync">
+            <summary>
+            Gets an IAM auth token.
+            </summary>
+        </member>
+        <member name="P:YandexCloudApi.IAuthorizer.NeedNewToken">
+            <summary>
+            Returns <code>True</code> when it's time to get
+            a new auth token.
+            </summary>
+        </member>
+        <member name="T:YandexCloudApi.SoundConverter">
+            <summary>
+            Converts between different sound formats.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.SoundConverter.ConvertPcmToOpus(System.Byte[],NAudio.Wave.WaveFormat)">
+            <summary>
+            Reliably converts raw PCM data without WAV header to
+            OPUS stream packet into Ogg container.
+            </summary>
+            <param name="pcmData">Raw PCM data without WAV header.</param>
+            <param name="format">PCM data format.</param>
+            <returns>Ogg container with OPUS-encoded stream.</returns>
+        </member>
+        <member name="T:YandexCloudApi.SoundFormat">
+            <summary>
+            Sound format.
+            </summary>
+        </member>
+        <member name="F:YandexCloudApi.SoundFormat.PCM">
+            <summary>
+            Raw WAV data without header.
+            </summary>
+        </member>
+        <member name="F:YandexCloudApi.SoundFormat.OggOpus">
+            <summary>
+            OPUS-encoded sound wrapped into OGG container.
+            </summary>
+        </member>
+        <member name="T:YandexCloudApi.SpeechKitApi">
+            <summary>
+            SpeechKit API wrapper.
+            </summary>
+        </member>
+        <member name="M:YandexCloudApi.SpeechKitApi.#ctor(YandexCloudApi.IAuthorizer)">
+            <summary>
+            Ctor.
+            </summary>
+        </member>
+    </members>
+</doc>
