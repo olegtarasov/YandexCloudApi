@@ -33,18 +33,18 @@ For example, to recognize text from speech:
 
 ```csharp
 var speechKit = new SpeechKitApi(_fullAuthorizer, _configuration["FolderId"]);
-string text = speechKit.RecognizeTextAsync(data, AudioFormat.PCM).Result;
+string text = await speechKit.RecognizeTextAsync(data, AudioFormat.PCM);
 ```
 
 To synthesize speech from text:
 
 ```csharp
 var speechKit = new SpeechKitApi(_fullAuthorizer, _configuration["FolderId"]);
-var data = speechKit.SynthesizeSpeechAsync(
+var data = await speechKit.SynthesizeSpeechAsync(
                 text, 
                 AudioFormat.PCM,
                 speed: 0.8f,
-                emotion: Emotion.Good).Result;
+                emotion: Emotion.Good);
 
 // In this example *data* will contain raw PCM stream.
 ```
