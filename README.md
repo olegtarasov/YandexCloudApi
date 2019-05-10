@@ -1,5 +1,5 @@
 [![Build status](https://img.shields.io/appveyor/ci/olegtarasov/yandexcloudapi.svg?logo=appveyor)](https://ci.appveyor.com/project/olegtarasov/yandexcloudapi/branch/master)
-[![Nuget](https://img.shields.io/nuget/dt/YandexCloudApi.svg?logo=nuget)](https://www.nuget.org/packages/YandexCloudApi)
+[![Nuget](https://img.shields.io/nuget/v/YandexCloudApi.svg?logo=nuget)](https://www.nuget.org/packages/YandexCloudApi)
 
 # Yandex Cloud .NET API
 
