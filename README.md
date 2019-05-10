@@ -68,8 +68,8 @@ You can run `ApiTest` with different commands to test different things. But firs
 Fire up the terminal and navigate to `ApiTest` project folder. Then do:
 
 ```
-dotnet user-secrets set OAuthToken "<your token>"
-dotnet user-secrets set FolderId "<your folder id>"
+# dotnet user-secrets set OAuthToken "<your token>"
+# dotnet user-secrets set FolderId "<your folder id>"
 ```
 
 Now you can build and run the app. To test speech recognition, do:
