@@ -25,21 +25,42 @@ namespace YandexCloudApi
         /// <returns>Ogg container with OPUS-encoded stream.</returns>
         public Task<byte[]> ConvertPcmToOpusAsync(byte[] pcmData, WaveFormat format)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 string pcmFile = Path.GetTempFileName();
+
+                try
+                {
+                    using (var writer = new WaveFileWriter(pcmFile, format))
+                    {
+                        writer.Write(pcmData, 0, pcmData.Length);
+                    }
+
+                    return await ConvertWavToOpusAsync(pcmFile);
+                }
+                finally
+                {
+                    File.Delete(pcmFile);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Converts WAV file to OPUS stream packed into Ogg container.
+        /// </summary>
+        /// <param name="wavFile">Path to WAV file.</param>
+        /// <returns>Ogg container with OPUS-encoded stream.</returns>
+        public Task<byte[]> ConvertWavToOpusAsync(string wavFile)
+        {
+            return Task.Run(() =>
+            {
                 string oggFile = Path.GetTempFileName();
 
-                using (var writer = new WaveFileWriter(pcmFile, format))
+                var info = new ProcessStartInfo(GetOpusPath(), $"\"{wavFile}\" \"{oggFile}\"")
                 {
-                    writer.Write(pcmData, 0, pcmData.Length);
-                }
-
-                var info = new ProcessStartInfo(GetOpusPath(), $"{pcmFile} {oggFile}")
-                           {
-                               UseShellExecute = false,
-                               RedirectStandardError = true
-                           };
+                    UseShellExecute = false,
+                    RedirectStandardError = true
+                };
 
                 _log.Debug($"{info.FileName} {info.Arguments}");
 
@@ -81,7 +102,6 @@ namespace YandexCloudApi
                 }
                 finally
                 {
-                    File.Delete(pcmFile);
                     File.Delete(oggFile);
                 }
             });
