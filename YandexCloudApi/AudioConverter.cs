@@ -23,23 +23,26 @@ namespace YandexCloudApi
         /// <param name="pcmData">Raw PCM data without WAV header.</param>
         /// <param name="format">PCM data format.</param>
         /// <returns>Ogg container with OPUS-encoded stream.</returns>
-        public async Task<byte[]> ConvertPcmToOpusAsync(byte[] pcmData, WaveFormat format)
+        public Task<byte[]> ConvertPcmToOpusAsync(byte[] pcmData, WaveFormat format)
         {
-            string pcmFile = Path.GetTempFileName();
-
-            try
+            return Task.Run(async () =>
             {
-                using (var writer = new WaveFileWriter(pcmFile, format))
+                string pcmFile = Path.GetTempFileName();
+
+                try
                 {
-                    writer.Write(pcmData, 0, pcmData.Length);
-                }
+                    using (var writer = new WaveFileWriter(pcmFile, format))
+                    {
+                        writer.Write(pcmData, 0, pcmData.Length);
+                    }
 
-                return await ConvertWavToOpusAsync(pcmFile);
-            }
-            finally
-            {
-                File.Delete(pcmFile);
-            }
+                    return await ConvertWavToOpusAsync(pcmFile);
+                }
+                finally
+                {
+                    File.Delete(pcmFile);
+                }
+            });
         }
 
         /// <summary>
